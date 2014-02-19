@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:jms="http://www.springframework.org/schema/jms"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-4.0.xsd 
+	http://www.springframework.org/schema/jms 
+	http://www.springframework.org/schema/jms/spring-jms-4.0.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	">
+	
+	<!-- context:property-placeholder location="classpath:/conf/activemq.properties"/ -->
+	
+	<context:component-scan base-package="com.kintegration.esb.spring.activempq"></context:component-scan>
+	
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+		
+			<list>
+				<value>classpath:/conf/activemq.properties</value>
+			</list>
+		</property>
+	</bean>
+	
+	
+	
+	<bean id="jmsConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+		<property name="brokerURL">
+			<value>${jms.broker.url}</value>
+		</property>
+	</bean>
+	
+	<bean id="pooledJmsConnectionFactory" class="org.apache.activemq.pool.PooledConnectionFactory"
+		destroy-method="stop">
+		<property name="connectionFactory" ref="jmsConnectionFactory"></property>
+	</bean>
+	
+	<!-- This is the working solution -->
+	<!--bean id="jmsContainer" class="org.springframework.jms.listener.SimpleMessageListenerContainer">
+        <property name="autoStartup" value="true"/>
+        <property name="connectionFactory" ref="pooledJmsConnectionFactory"/-->
+        <!-- property name="destinationName" value="${jms.queue.name}"/-->
+        <!-- property name="destination" ref="myDestination"></property>
+        <property name="messageListener" ref="replier"/>
+        <property name="acceptMessagesWhileStopping" value="true"/>
+    </bean-->
+    
+    <!--  This is the end of the working solution. -->
+    
+    <!--bean id="myDestination" class="org.apache.activemq.command.ActiveMQQueue">
+        <constructor-arg value="kintegration.requestQueue"/>
+    </bean-->
+	
+	<jms:listener-container container-type="default" 
+		connection-factory="pooledJmsConnectionFactory" acknowledge="auto">
+		<jms:listener destination="kintegration.requestQueue" ref="replier"></jms:listener>
+	</jms:listener-container>
+	
+	
+	<bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+		<property name="connectionFactory" ref="pooledJmsConnectionFactory"></property>
+		<property name="defaultDestinationName" value="kintegration.replyQueue"></property>
+	</bean>
+	
+	<bean id="replier" class="com.kintegration.esb.spring.activemq.Replier"></bean>
+	
+	<!--Counter for consumer to increment and test to verify count -->
+	<bean id="counter" class="java.util.concurrent.atomic.AtomicInteger"></bean>
+</beans>
