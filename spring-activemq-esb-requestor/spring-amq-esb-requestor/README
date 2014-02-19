@@ -1,0 +1,12 @@
+This is the requestor application in the Request/Reply Enterprise Integration Patterns.
+The application is build with support of Spring Jms.
+It is a Maven project that you can import to your IDE of choice. I built it in Eclipse Juno.
+
+There is an uberjar that is created when you run mvn clean install.
+If you don't change the uberjar is called 'esb-requestor-0.0.1-SNAPSHOT.jar'
+
+You can start the application by running the command java -jar esb-requestor-0.0.1-SNAPSHOT.jar
+
+You should run the replier application too, to see the actions.
+
+In brief, 100 messages are sent from the requestor and there are 100 replies back from replier.
