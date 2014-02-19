@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	">
+	
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+		
+			<list>
+				<value>classpath:/conf/activemq.properties</value>
+			</list>
+		</property>
+	</bean>
+		
+	<context:component-scan base-package="com.kintegration.esb.spring.activemq"></context:component-scan>
+
+	<bean id="jmsConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+		<property name="brokerURL">
+			<value>${jms.broker.url}</value>
+		</property>
+	</bean>
+	<bean id="pooledJmsConnectionFactory" class="org.apache.activemq.pool.PooledConnectionFactory"
+		destroy-method="stop">
+		<property name="connectionFactory" ref="jmsConnectionFactory">
+		</property>
+	</bean>
+	<bean id="destination" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="kintegration.requestQueue"></constructor-arg>
+	</bean>
+	
+	<bean id="replyTo" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="kintegration.replyQueue"></constructor-arg>
+	</bean>
+	
+	<bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+		<property name="connectionFactory" ref="pooledJmsConnectionFactory">
+		</property>
+		<property name="defaultDestination" ref="destination"></property>
+	</bean>
+	
+	<bean id="jmsTemplateReplyTo" class="org.springframework.jms.core.JmsTemplate">
+		<property name="connectionFactory" ref="pooledJmsConnectionFactory">
+		</property>
+		<property name="defaultDestination" ref="replyTo"></property>
+	</bean>
+	
+	<bean id="requestor" class="com.kintegration.esb.spring.activemq.Requestor"/>
+	
+</beans>
